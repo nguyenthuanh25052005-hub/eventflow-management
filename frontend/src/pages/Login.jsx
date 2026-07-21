@@ -17,8 +17,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    setForm((current) => ({
-      ...current,
+    setForm((prev) => ({
+      ...prev,
       [event.target.name]: event.target.value,
     }));
   };
@@ -26,7 +26,10 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!form.email.trim() || !form.password.trim()) {
+    const email = form.email.trim();
+    const password = form.password.trim();
+
+    if (!email || !password) {
       toast.error("Vui lòng nhập email và mật khẩu.");
       return;
     }
@@ -34,22 +37,56 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const response = await api.post("/auth/login", form);
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      // Backend trả về:
+      // {
+      //   success: true,
+      //   message: "...",
+      //   data: {
+      //      id,
+      //      fullName,
+      //      email,
+      //      role,
+      //      status,
+      //      token
+      //   }
+      // }
+
       const user = response.data.data;
 
-      if (user.role !== "ADMIN") {
-        toast.error("Tài khoản không có quyền truy cập Dashboard.");
+      if (!user || !user.token) {
+        throw new Error("Không nhận được token từ máy chủ.");
+      }
+
+      const role = String(user.role).toUpperCase();
+
+      const allowedRoles = ["ADMIN", "EVENT_MANAGER", "DESIGNER", "ACCOUNTANT"];
+
+      if (!allowedRoles.includes(role)) {
+        toast.error("Bạn không có quyền truy cập hệ thống.");
         return;
       }
 
       localStorage.setItem("eventflow_token", user.token);
+
       localStorage.setItem("eventflow_user", JSON.stringify(user));
 
-      toast.success("Đăng nhập thành công.");
-      navigate("/dashboard");
+      toast.success("Đăng nhập thành công!");
+
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch (error) {
+      console.error(error);
+
       toast.error(
-        error.response?.data?.message || "Đăng nhập không thành công."
+        error.response?.data?.message ||
+          error.message ||
+          "Đăng nhập không thành công.",
       );
     } finally {
       setLoading(false);
@@ -66,23 +103,25 @@ export default function Login() {
 
         <div className="brand-content">
           <p className="brand-eyebrow">EVENT MANAGEMENT PLATFORM</p>
+
           <h1>Quản lý mọi sự kiện trong một hệ thống duy nhất.</h1>
+
           <p>
-            Theo dõi yêu cầu, điều phối nhân sự, quản lý tiến độ và vận hành
-            sự kiện hiệu quả.
+            Theo dõi yêu cầu, điều phối nhân sự, quản lý tiến độ và vận hành sự
+            kiện hiệu quả.
           </p>
         </div>
 
-        <div className="brand-footer">
-          EventFlow Management System
-        </div>
+        <div className="brand-footer">EventFlow Management System</div>
       </section>
 
       <section className="login-form-panel">
         <form className="login-card" onSubmit={handleSubmit}>
           <div className="login-heading">
             <p>Chào mừng trở lại</p>
+
             <h2>Đăng nhập Dashboard</h2>
+
             <span>Nhập thông tin tài khoản quản trị của bạn.</span>
           </div>
 
@@ -91,6 +130,7 @@ export default function Login() {
 
             <div className="input-wrapper">
               <FiMail />
+
               <input
                 type="email"
                 name="email"
@@ -120,8 +160,7 @@ export default function Login() {
               <button
                 type="button"
                 className="password-toggle"
-                onClick={() => setShowPassword((current) => !current)}
-                aria-label="Hiện hoặc ẩn mật khẩu"
+                onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
@@ -133,8 +172,8 @@ export default function Login() {
           </button>
 
           <p className="login-note">
-            Chỉ Admin, Event Manager, Designer và Accountant được truy cập hệ
-            thống nội bộ.
+            Chỉ Admin, Event Manager, Designer và Accountant được phép truy cập
+            hệ thống.
           </p>
         </form>
       </section>

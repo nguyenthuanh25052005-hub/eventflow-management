@@ -1,28 +1,33 @@
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
-
 import "./DashboardLayout.css";
 
-export default function DashboardLayout({
-  children,
-}) {
+function DashboardLayout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const handleToggleSidebar = () => {
+    setSidebarCollapsed((previousState) => !previousState);
+  };
+
   return (
-    <div className="layout">
+    <div className="dashboard-layout">
+      <Sidebar collapsed={sidebarCollapsed} />
 
-      <Sidebar />
+      <div
+        className={`dashboard-main ${
+          sidebarCollapsed ? "dashboard-main-expanded" : ""
+        }`}
+      >
+        <Topbar onToggleSidebar={handleToggleSidebar} />
 
-      <div className="main">
-
-        <Topbar />
-
-        <main className="content">
-
-          {children}
-
+        <main className="dashboard-content">
+          <Outlet />
         </main>
-
       </div>
-
     </div>
   );
 }
+
+export default DashboardLayout;

@@ -1,64 +1,126 @@
+import { NavLink } from "react-router-dom";
 import {
-  FiGrid,
-  FiUsers,
-  FiBriefcase,
-  FiCalendar,
-  FiClipboard,
-  FiLayers,
-  FiBarChart2,
-  FiSettings,
-  FiLogOut,
-} from "react-icons/fi";
-
+  BarChart3,
+  CalendarCheck,
+  CalendarDays,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  Palette,
+  Settings,
+  UserRoundCog,
+  Users,
+} from "lucide-react";
 import "./Sidebar.css";
 
-const menus = [
-  { icon: <FiGrid />, label: "Dashboard" },
-  { icon: <FiUsers />, label: "Users" },
-  { icon: <FiBriefcase />, label: "Employees" },
-  { icon: <FiLayers />, label: "Event Types" },
-  { icon: <FiClipboard />, label: "Requests" },
-  { icon: <FiCalendar />, label: "Events" },
-  { icon: <FiBarChart2 />, label: "Reports" },
-  { icon: <FiSettings />, label: "Settings" },
+const menuItems = [
+  {
+    title: "Dashboard",
+    path: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Người dùng",
+    path: "/users",
+    icon: Users,
+  },
+  {
+    title: "Nhân viên",
+    path: "/employees",
+    icon: UserRoundCog,
+  },
+  {
+    title: "Yêu cầu sự kiện",
+    path: "/event-requests",
+    icon: CalendarCheck,
+  },
+  {
+    title: "Sự kiện",
+    path: "/events",
+    icon: CalendarDays,
+  },
+  {
+    title: "Thiết kế",
+    path: "/designs",
+    icon: Palette,
+  },
+  {
+    title: "Báo giá",
+    path: "/quotations",
+    icon: FileText,
+  },
+  {
+    title: "Thanh toán",
+    path: "/payments",
+    icon: CreditCard,
+  },
+  {
+    title: "Báo cáo",
+    path: "/reports",
+    icon: BarChart3,
+  },
+  {
+    title: "Cài đặt",
+    path: "/settings",
+    icon: Settings,
+  },
 ];
 
-export default function Sidebar() {
+function Sidebar({ collapsed = false }) {
   return (
-    <aside className="sidebar">
-      <div className="logo">
+    <aside
+      className={`eventflow-sidebar ${
+        collapsed ? "eventflow-sidebar-collapsed" : ""
+      }`}
+    >
+      <div className="sidebar-brand">
+        <div className="sidebar-brand-icon">E</div>
 
-        <div className="logo-icon">EF</div>
-
-        <div>
-
-          <h2>EventFlow</h2>
-
-          <span>Management</span>
-
-        </div>
-
+        {!collapsed && (
+          <div className="sidebar-brand-text">
+            <strong>EventFlow</strong>
+            <span>Event Management</span>
+          </div>
+        )}
       </div>
 
-      <nav>
+      <div className="sidebar-menu-label">
+        {!collapsed && "QUẢN LÝ HỆ THỐNG"}
+      </div>
 
-        {menus.map((item) => (
-          <button key={item.label} className="menu-item">
-            {item.icon}
-            <span>{item.label}</span>
-          </button>
-        ))}
+      <nav className="sidebar-menu">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
 
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              title={collapsed ? item.title : ""}
+              className={({ isActive }) =>
+                `sidebar-menu-item ${
+                  isActive ? "sidebar-menu-item-active" : ""
+                }`
+              }
+            >
+              <Icon size={20} />
+
+              {!collapsed && <span>{item.title}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      <button className="logout">
-
-        <FiLogOut />
-
-        Logout
-
-      </button>
-
+      <div className="sidebar-bottom">
+        {!collapsed && (
+          <>
+            <strong>EventFlow</strong>
+            <span>Phiên bản 1.0.0</span>
+          </>
+        )}
+      </div>
     </aside>
   );
 }
+
+export default Sidebar;
