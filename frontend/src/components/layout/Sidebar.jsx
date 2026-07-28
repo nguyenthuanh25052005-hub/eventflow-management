@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import "./Sidebar.css";
-
+import { ListTodo } from "lucide-react";
 const menuItems = [
   {
     title: "Dashboard",
@@ -33,6 +33,11 @@ const menuItems = [
     title: "Yêu cầu sự kiện",
     path: "/event-requests",
     icon: CalendarCheck,
+  },
+  {
+    title: "Công việc",
+    path: "/tasks",
+    icon: ListTodo,
   },
   {
     title: "Sự kiện",

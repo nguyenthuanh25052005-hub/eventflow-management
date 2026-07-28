@@ -10,7 +10,7 @@ const eventTypeRoutes = require("./routes/eventType.routes");
 const eventRequestRoutes = require("./routes/eventRequest.routes");
 const eventRoutes = require("./routes/event.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
-
+const taskRoutes = require("./routes/task.routes");
 const swaggerSpec = require("./config/swagger");
 
 const app = express();
@@ -38,6 +38,7 @@ app.use("/api/event-types", eventTypeRoutes);
 app.use("/api/event-requests", eventRequestRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Root route
 app.get("/", (req, res) => {

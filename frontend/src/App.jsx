@@ -7,6 +7,7 @@ import EventDetail from "./pages/EventDetail";
 import EventRequests from "./pages/EventRequests";
 import EventRequestDetail from "./pages/EventRequestDetail";
 import CreateEvent from "./pages/CreateEvent";
+import TaskDashboard from "./pages/TaskDashboard";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -30,6 +31,8 @@ export default function App() {
             path="/event-requests/:id/create-event"
             element={<CreateEvent />}
           />
+
+          <Route path="/tasks" element={<TaskDashboard />} />
 
           <Route path="/events" element={<Events />} />
 
