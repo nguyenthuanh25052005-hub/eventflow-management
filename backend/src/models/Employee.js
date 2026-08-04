@@ -18,7 +18,7 @@ const employeeSchema = new mongoose.Schema(
 
     position: {
       type: String,
-      enum: ["ADMIN", "EVENT_MANAGER", "DESIGNER", "ACCOUNTANT"],
+      enum: ["EVENT_MANAGER", "DESIGNER", "ACCOUNTANT"],
       required: true,
     },
 
@@ -35,7 +35,7 @@ const employeeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Employee = mongoose.model("Employee", employeeSchema);

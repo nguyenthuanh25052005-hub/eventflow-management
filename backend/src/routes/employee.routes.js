@@ -8,10 +8,15 @@ const {
 
 const { protect } = require("../middlewares/auth.middleware");
 
+const { authorizeRoles } = require("../middlewares/role.middleware");
+
 const router = express.Router();
 
-router.get("/", protect, getEmployees);
-router.post("/", protect, createEmployee);
-router.put("/:id", protect, updateEmployee);
+router.use(protect);
+router.use(authorizeRoles("ADMIN"));
+
+router.get("/", getEmployees);
+router.post("/", createEmployee);
+router.put("/:id", updateEmployee);
 
 module.exports = router;

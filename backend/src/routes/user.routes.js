@@ -10,14 +10,22 @@ const {
 
 const { protect } = require("../middlewares/auth.middleware");
 
+const { authorizeRoles } = require("../middlewares/role.middleware");
+
 const router = express.Router();
 
-router.get("/", protect, getUsers);
-router.post("/", protect, createUser);
+// Tất cả API User Management phải đăng nhập
+router.use(protect);
 
-router.put("/:id/status", protect, updateUserStatus);
+// Và phải là ADMIN
+router.use(authorizeRoles("ADMIN"));
 
-router.get("/:id", protect, getUserById);
-router.put("/:id", protect, updateUser);
+router.get("/", getUsers);
+router.post("/", createUser);
+
+router.put("/:id/status", updateUserStatus);
+
+router.get("/:id", getUserById);
+router.put("/:id", updateUser);
 
 module.exports = router;

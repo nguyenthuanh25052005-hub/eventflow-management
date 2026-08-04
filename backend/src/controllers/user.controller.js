@@ -5,13 +5,13 @@ const getUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: users.length,
       data: users,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -30,12 +30,12 @@ const getUserById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: user,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -46,6 +46,30 @@ const getUserById = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { fullName, email, password, phone, role, avatar, status } = req.body;
+
+    const allowedRoles = [
+      "CUSTOMER",
+      "ADMIN",
+      "EVENT_MANAGER",
+      "DESIGNER",
+      "ACCOUNTANT",
+    ];
+
+    const allowedStatuses = ["active", "inactive", "blocked"];
+
+    if (role && !allowedRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role",
+      });
+    }
+
+    if (status && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
@@ -75,7 +99,7 @@ const createUser = async (req, res) => {
       status,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User created successfully",
       data: {
@@ -89,7 +113,7 @@ const createUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -113,7 +137,9 @@ const updateUser = async (req, res) => {
     if (email && email !== user.email) {
       const existingUser = await User.findOne({
         email: email.toLowerCase(),
-        _id: { $ne: user._id },
+        _id: {
+          $ne: user._id,
+        },
       });
 
       if (existingUser) {
@@ -124,15 +150,42 @@ const updateUser = async (req, res) => {
       }
     }
 
-    if (fullName !== undefined) user.fullName = fullName;
-    if (email !== undefined) user.email = email;
-    if (phone !== undefined) user.phone = phone;
-    if (role !== undefined) user.role = role;
-    if (avatar !== undefined) user.avatar = avatar;
+    if (fullName !== undefined) {
+      user.fullName = fullName;
+    }
+
+    if (email !== undefined) {
+      user.email = email;
+    }
+
+    if (phone !== undefined) {
+      user.phone = phone;
+    }
+
+    // Không cho admin tự hạ role
+    if (
+      role !== undefined &&
+      String(user._id) === String(req.user._id) &&
+      role !== "ADMIN"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Bạn không thể tự gỡ quyền ADMIN của tài khoản đang đăng nhập.",
+      });
+    }
+
+    if (role !== undefined) {
+      user.role = role;
+    }
+
+    if (avatar !== undefined) {
+      user.avatar = avatar;
+    }
 
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User updated successfully",
       data: {
@@ -146,7 +199,7 @@ const updateUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -176,10 +229,20 @@ const updateUserStatus = async (req, res) => {
       });
     }
 
+    // Không cho admin tự khóa / vô hiệu hóa
+    if (String(user._id) === String(req.user._id) && status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Bạn không thể khóa hoặc vô hiệu hóa tài khoản đang đăng nhập.",
+      });
+    }
+
     user.status = status;
+
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User status updated successfully",
       data: {
@@ -191,7 +254,7 @@ const updateUserStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

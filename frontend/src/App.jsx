@@ -8,39 +8,72 @@ import EventRequests from "./pages/EventRequests";
 import EventRequestDetail from "./pages/EventRequestDetail";
 import CreateEvent from "./pages/CreateEvent";
 import TaskDashboard from "./pages/TaskDashboard";
+import UsersPage from "./pages/UsersPage";
+import EmployeesPage from "./pages/EmployeesPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import RoleRoute from "./routes/RoleRoute";
+
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 export default function App() {
   return (
     <Routes>
-      {/* Public route */}
+      {/* PUBLIC */}
       <Route path="/login" element={<Login />} />
 
-      {/* Protected admin routes */}
+      {/* LOGIN REQUIRED */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* ADMIN ONLY */}
+          <Route element={<RoleRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route path="/event-requests" element={<EventRequests />} />
+            <Route path="/users" element={<UsersPage />} />
 
-          <Route path="/event-requests/:id" element={<EventRequestDetail />} />
+            <Route path="/employees" element={<EmployeesPage />} />
+          </Route>
 
+          {/* ADMIN + EVENT MANAGER */}
           <Route
-            path="/event-requests/:id/create-event"
-            element={<CreateEvent />}
-          />
+            element={<RoleRoute allowedRoles={["ADMIN", "EVENT_MANAGER"]} />}
+          >
+            <Route path="/event-requests" element={<EventRequests />} />
 
-          <Route path="/tasks" element={<TaskDashboard />} />
+            <Route
+              path="/event-requests/:id"
+              element={<EventRequestDetail />}
+            />
 
-          <Route path="/events" element={<Events />} />
+            <Route
+              path="/event-requests/:id/create-event"
+              element={<CreateEvent />}
+            />
 
-          <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/events" element={<Events />} />
+
+            <Route path="/events/:id" element={<EventDetail />} />
+          </Route>
+
+          {/* EMPLOYEE TASKS */}
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "EVENT_MANAGER",
+                  "DESIGNER",
+                  "ACCOUNTANT",
+                ]}
+              />
+            }
+          >
+            <Route path="/tasks" element={<TaskDashboard />} />
+          </Route>
         </Route>
       </Route>
 
-      {/* Redirect routes */}
+      {/* DEFAULT */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

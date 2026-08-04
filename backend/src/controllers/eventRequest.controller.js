@@ -192,7 +192,7 @@ const updateEventRequestStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const allowedStatuses = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+    const allowedStatuses = ["PENDING", "CONSULTING", "REJECTED", "CONVERTED"];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
@@ -211,19 +211,20 @@ const updateEventRequestStatus = async (req, res) => {
     }
 
     eventRequest.status = status;
+
     await eventRequest.save();
 
     const populatedEventRequest = await EventRequest.findById(eventRequest._id)
       .populate("customer", "fullName email phone")
       .populate("eventType", "name description status");
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Event request status updated successfully",
       data: populatedEventRequest,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

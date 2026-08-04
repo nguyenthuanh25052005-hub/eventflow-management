@@ -31,7 +31,15 @@ const createEmployee = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    if (user.role === "ADMIN") {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể tạo hồ sơ nhân viên từ tài khoản quản trị viên.",
+      });
     }
 
     const existingEmployee = await Employee.findOne({
@@ -42,6 +50,14 @@ const createEmployee = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Employee already exists",
+      });
+    }
+    const allowedPositions = ["EVENT_MANAGER", "DESIGNER", "ACCOUNTANT"];
+
+    if (!allowedPositions.includes(position)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee position",
       });
     }
 
@@ -58,7 +74,7 @@ const createEmployee = async (req, res) => {
 
     const populatedEmployee = await Employee.findById(employee._id).populate(
       "user",
-      "fullName email phone role status avatar"
+      "fullName email phone role status avatar",
     );
 
     res.status(201).json({
@@ -76,9 +92,18 @@ const updateEmployee = async (req, res) => {
     const { employeeCode, position, department, hireDate } = req.body;
 
     const employee = await Employee.findById(req.params.id);
+    const allowedPositions = ["EVENT_MANAGER", "DESIGNER", "ACCOUNTANT"];
 
+    if (position !== undefined && !allowedPositions.includes(position)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee position",
+      });
+    }
     if (!employee) {
-      return res.status(404).json({ success: false, message: "Employee not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Employee not found" });
     }
 
     if (employeeCode && employeeCode !== employee.employeeCode) {
@@ -108,7 +133,7 @@ const updateEmployee = async (req, res) => {
 
     const populatedEmployee = await Employee.findById(employee._id).populate(
       "user",
-      "fullName email phone role status avatar"
+      "fullName email phone role status avatar",
     );
 
     res.status(200).json({
