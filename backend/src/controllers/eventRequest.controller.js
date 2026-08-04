@@ -192,7 +192,7 @@ const updateEventRequestStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const allowedStatuses = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+    const allowedStatuses = ["PENDING", "CONSULTING", "REJECTED", "CONVERTED"];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({

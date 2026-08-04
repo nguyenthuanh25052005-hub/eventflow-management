@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   Eye,
@@ -33,6 +33,7 @@ function formatDate(value) {
 }
 
 function Events() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
@@ -234,7 +235,9 @@ function Events() {
                     </td>
 
                     <td>
-                      <strong>{event.customer?.fullName || "Chưa cập nhật"}</strong>
+                      <strong>
+                        {event.customer?.fullName || "Chưa cập nhật"}
+                      </strong>
                       <small>{event.customer?.email || ""}</small>
                     </td>
 
@@ -279,8 +282,10 @@ function Events() {
                         <button
                           type="button"
                           className="event-icon-button edit"
-                          onClick={() => openEditModal(event)}
-                          title="Cập nhật"
+                          onClick={() =>
+                            navigate(`/events/${event._id}/edit`)
+                          }
+                          title="Chỉnh sửa"
                         >
                           <Pencil size={17} />
                         </button>

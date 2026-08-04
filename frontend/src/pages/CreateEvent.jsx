@@ -36,6 +36,7 @@ function CreateEvent() {
   useEffect(() => {
     const loadRequest = async () => {
       try {
+        setLoading(true);
         const response = await eventRequestApi.getById(id);
         const data = response.data?.data || null;
 
@@ -81,9 +82,23 @@ function CreateEvent() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!form.eventName.trim() || !form.eventDate || !form.location.trim()) {
-      toast.error("Vui lòng nhập tên, ngày và địa điểm tổ chức.");
+    if (!form.eventName.trim()) {
+      toast.error("Tên sự kiện là bắt buộc.");
       return;
+    }
+
+    if (!form.eventDate || !form.location.trim()) {
+      toast.error("Vui lòng nhập ngày và địa điểm tổ chức.");
+      return;
+    }
+
+    if (form.endDate && form.eventDate) {
+      const start = new Date(form.eventDate);
+      const end = new Date(form.endDate);
+      if (end < start) {
+        toast.error("Ngày kết thúc không được trước ngày bắt đầu.");
+        return;
+      }
     }
 
     try {
@@ -190,11 +205,7 @@ function CreateEvent() {
       <form className="event-form-card" onSubmit={handleSubmit}>
         <div className="event-form-grid">
           <label className="event-field">
-            <span>
-              <UserRound size={16} />
-              Manager ID
-            </span>
-
+            <span><UserRound size={16} />Manager ID</span>
             <input
               value={form.managerId}
               onChange={(event) => updateField("managerId", event.target.value)}

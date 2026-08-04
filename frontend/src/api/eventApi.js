@@ -13,6 +13,10 @@ const eventApi = {
     return api.get(`/events/${id}`);
   },
 
+  getProgress(id) {
+    return api.get(`/events/${id}/progress`);
+  },
+
   create(data) {
     return api.post("/events", data);
   },

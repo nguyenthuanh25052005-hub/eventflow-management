@@ -2,19 +2,25 @@ import api from "./axios";
 
 const taskApi = {
   getAll(params = {}) {
-    return api.get("/tasks", {
-      params,
-    });
+    return api.get("/tasks", { params });
+  },
+
+  getMy(params = {}) {
+    return api.get("/tasks/my", { params });
   },
 
   getByEvent(eventId, params = {}) {
     if (!eventId) {
       throw new Error("eventId là bắt buộc.");
     }
+    return api.get(`/events/${eventId}/tasks`, { params });
+  },
 
-    return api.get(`/tasks/event/${eventId}`, {
-      params,
-    });
+  getById(id) {
+    if (!id) {
+      throw new Error("Task ID là bắt buộc.");
+    }
+    return api.get(`/tasks/${id}`);
   },
 
   create(data) {
@@ -25,7 +31,6 @@ const taskApi = {
     if (!id) {
       throw new Error("Task ID là bắt buộc.");
     }
-
     return api.put(`/tasks/${id}`, data);
   },
 
@@ -33,7 +38,6 @@ const taskApi = {
     if (!id) {
       throw new Error("Task ID là bắt buộc.");
     }
-
     return api.delete(`/tasks/${id}`);
   },
 };

@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
+import EventEdit from "./pages/EventEdit";
 import EventRequests from "./pages/EventRequests";
 import EventRequestDetail from "./pages/EventRequestDetail";
 import CreateEvent from "./pages/CreateEvent";
@@ -24,9 +25,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/event-requests" element={<EventRequests />} />
-
           <Route path="/event-requests/:id" element={<EventRequestDetail />} />
-
           <Route
             path="/event-requests/:id/create-event"
             element={<CreateEvent />}
@@ -35,14 +34,13 @@ export default function App() {
           <Route path="/tasks" element={<TaskDashboard />} />
 
           <Route path="/events" element={<Events />} />
-
           <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/events/:id/edit" element={<EventEdit />} />
         </Route>
       </Route>
 
       {/* Redirect routes */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

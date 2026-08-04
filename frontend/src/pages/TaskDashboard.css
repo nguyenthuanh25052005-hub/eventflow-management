@@ -193,6 +193,128 @@
   opacity: 0.6;
 }
 
+.task-header-actions {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.task-create-button,
+.task-modal-footer button:last-child {
+  align-items: center;
+  background: #2563eb;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 700;
+  gap: 7px;
+  padding: 11px 14px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.task-actions button,
+.task-modal-header button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: 7px;
+}
+
+.task-actions button:last-child {
+  color: #dc2626;
+}
+
+.task-modal-backdrop {
+  align-items: center;
+  background: rgb(15 23 42 / 45%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 50;
+}
+
+.task-modal {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgb(15 23 42 / 25%);
+  max-height: calc(100vh - 40px);
+  max-width: 720px;
+  overflow: auto;
+  padding: 22px;
+  width: 100%;
+}
+
+.task-modal-header,
+.task-modal-footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.task-modal-header h2 {
+  margin: 0;
+}
+
+.task-modal-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 22px 0;
+}
+
+.task-modal-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.task-modal-grid label span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.task-modal-grid input,
+.task-modal-grid select,
+.task-modal-grid textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  padding: 10px 11px;
+}
+
+.task-modal-grid .full {
+  grid-column: 1 / -1;
+}
+
+.task-modal-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+
+.task-modal-footer button:first-child {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
 .priority {
   display: inline-block;
   padding: 5px 9px;
@@ -265,5 +387,12 @@
 
   .task-filter-bar > * {
     width: 100%;
+  }
+
+  .task-header-actions,
+  .task-modal-grid {
+    align-items: stretch;
+    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 }

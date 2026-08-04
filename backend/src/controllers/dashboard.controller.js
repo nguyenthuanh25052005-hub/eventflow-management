@@ -7,10 +7,17 @@ const Event = require("../models/Event");
 // GET /api/dashboard/stats
 const getDashboardStats = async (req, res) => {
   try {
-    if (req.user.role !== "ADMIN") {
+    // Cho phép Admin và Event Manager xem thống kê tổng quan
+    const role = String(req.user?.role || "")
+      .toUpperCase()
+      .trim();
+
+    if (!["ADMIN", "EVENT_MANAGER"].includes(role)) {
       return res.status(403).json({
         success: false,
-        message: "Only Admin can access dashboard statistics",
+        message:
+          "Chỉ Admin hoặc Event Manager mới được xem thống kê Dashboard.",
+        currentRole: req.user?.role || null,
       });
     }
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
+  Clock3,
   MapPin,
   RefreshCw,
   Save,
@@ -27,6 +29,14 @@ const STATUS_OPTIONS = [
   "CANCELLED",
 ];
 
+const STATUS_FLOW = {
+  PENDING: ["PENDING", "PLANNING", "CANCELLED"],
+  PLANNING: ["PLANNING", "IN_PROGRESS", "CANCELLED"],
+  IN_PROGRESS: ["IN_PROGRESS", "COMPLETED", "CANCELLED"],
+  COMPLETED: ["COMPLETED"],
+  CANCELLED: ["CANCELLED"],
+};
+
 function formatDate(value) {
   if (!value) return "Chưa cập nhật";
   const date = new Date(value);
@@ -44,27 +54,24 @@ function normalizeProgress(value) {
   return Math.min(Math.max(Number(value || 0), 0), 100);
 }
 
-function getStatusFromProgress(progress, currentStatus) {
-  const normalizedProgress = normalizeProgress(progress);
-  const normalizedStatus = String(currentStatus || "PENDING").toUpperCase();
-
-  if (normalizedStatus === "CANCELLED") return "CANCELLED";
-  if (normalizedProgress >= 100) return "COMPLETED";
-  if (normalizedProgress > 0) return "IN_PROGRESS";
-  if (normalizedStatus === "PLANNING") return "PLANNING";
-  return "PENDING";
-}
-
 function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [eventData, setEventData] = useState(null);
+  const [taskStats, setTaskStats] = useState({
+    totalValid: 0,
+    completed: 0,
+    inProgress: 0,
+    todo: 0,
+    cancelled: 0,
+    overdue: 0,
+    progressPercent: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     status: "PENDING",
-    progress: 0,
     notes: "",
   });
 
@@ -73,13 +80,25 @@ function EventDetail() {
       setLoading(true);
       const response = await eventApi.getById(id);
       const data = response.data?.data || null;
+      const stats = response.data?.taskStats;
 
       setEventData(data);
+
+      if (stats) {
+        setTaskStats({
+          totalValid: stats.totalValid || 0,
+          completed: stats.completed || 0,
+          inProgress: stats.inProgress || 0,
+          todo: stats.todo || 0,
+          cancelled: stats.cancelled || 0,
+          overdue: stats.overdue || 0,
+          progressPercent: normalizeProgress(stats.progressPercent),
+        });
+      }
 
       if (data) {
         setForm({
           status: data.status || "PENDING",
-          progress: normalizeProgress(data.progress),
           notes: data.notes || "",
         });
       }
@@ -96,50 +115,27 @@ function EventDetail() {
     loadEvent();
   }, [id]);
 
-  const handleProgressChange = (value) => {
-    const nextProgress = normalizeProgress(value);
-
-    setForm((current) => ({
-      ...current,
-      progress: nextProgress,
-      status: getStatusFromProgress(nextProgress, current.status),
-    }));
-  };
-
   const handleStatusChange = (status) => {
     setForm((current) => {
-      let nextProgress = normalizeProgress(current.progress);
-
-      if (status === "COMPLETED") nextProgress = 100;
-      if (status === "PENDING" && nextProgress > 0) nextProgress = 0;
-
-      return {
-        ...current,
-        status,
-        progress: nextProgress,
-      };
+      return { ...current, status };
     });
   };
 
   const handleSave = async () => {
     try {
       setSaving(true);
-
-      const progress = normalizeProgress(form.progress);
-      const status = getStatusFromProgress(progress, form.status);
+      const status = form.status;
 
       await eventApi.update(id, {
         status,
-        progress,
         notes: form.notes.trim(),
       });
 
       toast.success(
-        progress === 100
+        status === "COMPLETED"
           ? "Sự kiện đã hoàn thành."
           : "Cập nhật sự kiện thành công."
       );
-
       await loadEvent();
     } catch (error) {
       toast.error(
@@ -186,6 +182,8 @@ function EventDetail() {
   const budget =
     eventData.estimatedBudget || eventData.budget || eventData.totalBudget;
 
+  const displayProgress = normalizeProgress(taskStats.progressPercent);
+
   return (
     <div className="event-module-page">
       <div className="event-page-header">
@@ -196,15 +194,17 @@ function EventDetail() {
         </div>
 
         <div className="event-detail-header-actions">
-          <button
-            type="button"
-            className="event-secondary-button"
-            onClick={loadEvent}
-          >
+          <button type="button" className="event-secondary-button" onClick={loadEvent}>
             <RefreshCw size={18} />
             Làm mới
           </button>
-
+          <button
+            type="button"
+            className="event-primary-button"
+            onClick={() => navigate(`/events/${id}/edit`)}
+          >
+            Chỉnh sửa
+          </button>
           <button
             type="button"
             className="event-secondary-button"
@@ -222,7 +222,6 @@ function EventDetail() {
           <h2>{eventName}</h2>
           <span>Mã sự kiện: {eventCode}</span>
         </div>
-
         <StatusBadge status={eventData.status} />
       </section>
 
@@ -241,35 +240,28 @@ function EventDetail() {
                 <span><UserRound size={16} />Khách hàng</span>
                 <strong>{customerName}</strong>
               </div>
-
               <div className="event-detail-item">
                 <span><UserRound size={16} />Người phụ trách</span>
                 <strong>{managerName}</strong>
               </div>
-
               <div className="event-detail-item">
                 <span><CalendarDays size={16} />Ngày tổ chức</span>
                 <strong>
-                  {formatDate(
-                    eventData.eventDate ||
-                      eventData.startDate ||
-                      eventData.date
-                  )}
+                  {formatDate(eventData.eventDate || eventData.startDate || eventData.date)}
                 </strong>
               </div>
-
+              <div className="event-detail-item">
+                <span><CalendarDays size={16} />Ngày kết thúc</span>
+                <strong>{formatDate(eventData.endDate)}</strong>
+              </div>
               <div className="event-detail-item">
                 <span><MapPin size={16} />Địa điểm</span>
-                <strong>
-                  {eventData.location || eventData.venue || "Chưa cập nhật"}
-                </strong>
+                <strong>{eventData.location || eventData.venue || "Chưa cập nhật"}</strong>
               </div>
-
               <div className="event-detail-item">
                 <span><Users size={16} />Số khách</span>
                 <strong>{eventData.guestCount || eventData.expectedGuests || 0}</strong>
               </div>
-
               <div className="event-detail-item">
                 <span><WalletCards size={16} />Ngân sách</span>
                 <strong>{formatMoney(budget)}</strong>
@@ -281,7 +273,6 @@ function EventDetail() {
               <p>{eventData.description || "Không có mô tả."}</p>
             </div>
           </section>
-
           <section className="event-detail-card">
             <div className="event-table-heading event-section-heading">
               <div>
@@ -289,60 +280,59 @@ function EventDetail() {
                 <p>Theo dõi các mốc cập nhật quan trọng</p>
               </div>
             </div>
-
             <Timeline event={eventData} />
           </section>
-
           <section className="event-detail-card">
             <div className="event-table-heading event-section-heading">
               <div>
-                <h2>Tiến độ công việc</h2>
-                <p>Tiến độ 100% sẽ tự chuyển trạng thái thành COMPLETED</p>
+                <h2>Tiến độ sự kiện (theo task)</h2>
+                <p>% = Task hoàn thành / Tổng task hợp lệ (không tính task đã hủy)</p>
               </div>
             </div>
 
             <div className="event-progress-editor">
               <div className="event-progress-editor-top">
-                <span>Tiến độ hiện tại</span>
-                <strong>{normalizeProgress(form.progress)}%</strong>
+                <span>Phần trăm hoàn thành</span>
+                <strong>{displayProgress}%</strong>
               </div>
-
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={form.progress}
-                onChange={(event) =>
-                  handleProgressChange(event.target.value)
-                }
-              />
 
               <div className="event-progress-large">
-                <span
-                  style={{
-                    width: `${normalizeProgress(form.progress)}%`,
-                  }}
-                />
+                <span style={{ width: `${displayProgress}%` }} />
               </div>
 
-              <div className="event-progress-presets">
-                {[0, 25, 50, 75, 100].map((value) => (
-                  <button
-                    type="button"
-                    key={value}
-                    className={
-                      normalizeProgress(form.progress) === value
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() => handleProgressChange(value)}
-                  >
-                    {value}%
-                  </button>
-                ))}
+              <div className="event-task-stats-grid">
+                <article className="event-task-stat">
+                  <ClipboardList size={18} />
+                  <div>
+                    <strong>{taskStats.totalValid}</strong>
+                    <span>Task hợp lệ</span>
+                  </div>
+                </article>
+                <article className="event-task-stat">
+                  <CheckCircle2 size={18} />
+                  <div>
+                    <strong>{taskStats.completed}</strong>
+                    <span>Hoàn thành</span>
+                  </div>
+                </article>
+                <article className="event-task-stat">
+                  <Clock3 size={18} />
+                  <div>
+                    <strong>{taskStats.inProgress}</strong>
+                    <span>Đang làm</span>
+                  </div>
+                </article>
+                <article className="event-task-stat danger">
+                  <AlertTriangle size={18} />
+                  <div>
+                    <strong>{taskStats.overdue}</strong>
+                    <span>Quá hạn</span>
+                  </div>
+                </article>
               </div>
+
             </div>
+
           </section>
         </div>
 
@@ -358,14 +348,17 @@ function EventDetail() {
 
             <label className="event-field">
               <span>Trạng thái</span>
-
               <select
                 value={form.status}
-                onChange={(event) =>
-                  handleStatusChange(event.target.value)
-                }
+                onChange={(e) => handleStatusChange(e.target.value)}
+                disabled={["COMPLETED", "CANCELLED"].includes(
+                  String(eventData.status || "").toUpperCase()
+                )}
               >
-                {STATUS_OPTIONS.map((status) => (
+                {(
+                  STATUS_FLOW[String(eventData.status || "PENDING").toUpperCase()] ||
+                  STATUS_OPTIONS
+                ).map((status) => (
                   <option value={status} key={status}>
                     {status.replaceAll("_", " ")}
                   </option>
@@ -375,15 +368,11 @@ function EventDetail() {
 
             <label className="event-field">
               <span><ClipboardList size={16} />Ghi chú nội bộ</span>
-
               <textarea
                 rows="7"
                 value={form.notes}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    notes: event.target.value,
-                  }))
+                onChange={(e) =>
+                  setForm((current) => ({ ...current, notes: e.target.value }))
                 }
                 placeholder="Nhập ghi chú cho sự kiện..."
               />
@@ -408,18 +397,15 @@ function EventDetail() {
                 <p>Lịch sử tạo và cập nhật</p>
               </div>
             </div>
-
             <div className="event-system-info">
               <div>
                 <span>Ngày tạo</span>
                 <strong>{formatDate(eventData.createdAt)}</strong>
               </div>
-
               <div>
                 <span>Cập nhật gần nhất</span>
                 <strong>{formatDate(eventData.updatedAt)}</strong>
               </div>
-
               <div>
                 <span>Trạng thái hiện tại</span>
                 <StatusBadge status={eventData.status} />
