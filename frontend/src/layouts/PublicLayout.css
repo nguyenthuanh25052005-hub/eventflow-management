@@ -1,0 +1,22 @@
+.public-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: #15182b;
+}
+
+.public-main {
+  flex: 1;
+}
+
+.ef-public-container {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .ef-public-container {
+    width: min(100% - 28px, 1180px);
+  }
+}
